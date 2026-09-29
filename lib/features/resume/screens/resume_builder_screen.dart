@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:jobbridge/features/resume/resume_model.dart';
 import '../../../core/services/supabase_service.dart';
-
+import '../models/resume_model.dart';
 import '../providers/resume_provider.dart';
 
 class ResumeBuilderScreen extends ConsumerStatefulWidget {

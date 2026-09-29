@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:jobbridge/features/resume/resume_model.dart';
+import '../models/resume_model.dart';
 import '../../../core/services/supabase_service.dart';
 
 

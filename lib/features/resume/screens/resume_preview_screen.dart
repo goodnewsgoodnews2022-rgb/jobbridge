@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:jobbridge/features/resume/resume_model.dart';
+import 'package:jobbridge/features/resume/models/resume_model.dart';
 import 'package:jobbridge/features/resume/services/resume_pdf_service.dart';
 import 'package:printing/printing.dart';
 import '../../../core/services/payment_service.dart';

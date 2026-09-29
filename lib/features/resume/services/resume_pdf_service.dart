@@ -4,7 +4,7 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'dart:typed_data';
-import 'package:jobbridge/features/resume/resume_model.dart';
+import 'package:jobbridge/features/resume/models/resume_model.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 

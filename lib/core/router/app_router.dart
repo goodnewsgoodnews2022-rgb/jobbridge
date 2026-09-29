@@ -5,8 +5,12 @@ import 'package:jobbridge/features/company/company/screens/company_applications_
 import 'package:jobbridge/features/company/company/screens/manage_jobs_screen.dart';
 import 'package:jobbridge/features/company/company/screens/post_job_screen.dart';
 import 'package:jobbridge/features/company/screens/screens/company_dashboard_screen.dart';
-import 'package:jobbridge/features/payments/screens/screens/checkout_screen.dart';
-import 'package:jobbridge/features/payments/screens/screens/payment_pending_screen.dart';
+import '../../features/payments/screens/checkout_screen.dart';
+import '../../features/payments/screens/payment_pending_screen.dart';
+import '../../features/resume/screens/resume_landing_screen.dart';
+import '../../features/resume/screens/resume_builder_screen.dart';
+import '../../features/resume/screens/resume_preview_screen.dart';
+import '../../features/resume/screens/my_resumes_screen.dart';
 
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/auth/screens/login_screen.dart';
@@ -30,10 +34,7 @@ import '../../features/job_seeker/screens/applications_screen.dart';
 import '../../features/job_seeker/screens/job_seeker_profile_screen.dart';
 import '../../shared/widgets/app_shell.dart';
 import '../../features/payments/screens/pricing_screen.dart';
-import '../../features/resume/screens/resume_landing_screen.dart';
-import '../../features/resume/screens/resume_builder_screen.dart';
-import '../../features/resume/screens/resume_preview_screen.dart';
-import '../../features/resume/screens/my_resumes_screen.dart';
+
 
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -83,10 +84,18 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
               path: '/remote-jobs',
               builder: (_, __) => const RemoteJobsScreen()),
-              GoRoute(
-    path: '/resume', builder: (_, __) => const ResumeLandingScreen()),
+          GoRoute(
+            path: '/pricing',
+            builder: (_, __) => const PricingScreen(),
+          ),
+  GoRoute(
+  path: '/resume',
+  builder: (_, __) => const ResumeLandingScreen(),
+),
 GoRoute(
-    path: '/my-resumes', builder: (_, __) => const MyResumesScreen()),
+  path: '/my-resumes',
+  builder: (_, __) => const MyResumesScreen(),
+),
 GoRoute(
   path: '/resume/create',
   builder: (_, s) =>
@@ -96,10 +105,6 @@ GoRoute(
   path: '/resume/preview',
   builder: (_, s) =>
       ResumePreviewScreen(resumeId: s.uri.queryParameters['id'] ?? ''),
-),
-              GoRoute(
-  path: '/pricing',
-  builder: (_, __) => const PricingScreen(),
 ),
           GoRoute(
               path: '/nigeria-jobs',
