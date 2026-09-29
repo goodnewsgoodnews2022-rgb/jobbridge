@@ -3,10 +3,24 @@ import 'package:go_router/go_router.dart';
 import '../../../shared/widgets/brand_logo.dart';
 
 class RegisterTypeScreen extends StatelessWidget {
-  const RegisterTypeScreen({super.key});
+  /// Optional path to redirect to after registration/login.
+  /// Example: `/jobs/abc-123` when the user clicked Apply on a job.
+  final String? redirect;
+
+  const RegisterTypeScreen({
+    super.key,
+    this.redirect,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final comingFromJob = redirect?.startsWith('/jobs/') ?? false;
+
+    // Build redirect query string (preserved across all links)
+    final redirectParam = (redirect != null && redirect!.isNotEmpty)
+        ? '?redirect=${Uri.encodeComponent(redirect!)}'
+        : '';
+
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
@@ -17,13 +31,51 @@ class RegisterTypeScreen extends StatelessWidget {
               children: [
                 const BrandLogo(size: 56),
                 const SizedBox(height: 24),
-                Text('Join JobBridge',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.w800)),
+                Text(
+                  'Join JobBridge',
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineMedium
+                      ?.copyWith(fontWeight: FontWeight.w800),
+                ),
                 const SizedBox(height: 8),
-                Text('What do you want to do?',
-                    style: TextStyle(color: Colors.grey[600])),
+                Text(
+                  'What do you want to do?',
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
+
+                // ── CONTEXT BANNER (only if coming from a job) ──
+                if (comingFromJob) ...[
+                  const SizedBox(height: 20),
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFBFDBFE)),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.work_outline,
+                            size: 20, color: Color(0xFF2563EB)),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'After signing up, you will return to the job you were viewing.',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF1E40AF),
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
                 const SizedBox(height: 40),
+
                 LayoutBuilder(builder: (context, constraints) {
                   final isWide = constraints.maxWidth > 560;
                   final cards = [
@@ -37,7 +89,8 @@ class RegisterTypeScreen extends StatelessWidget {
                         'Apply in one click',
                         'Track applications',
                       ],
-                      onTap: () => context.go('/register/job-seeker'),
+                      onTap: () => context
+                          .go('/register/job-seeker$redirectParam'),
                     ),
                     _RoleCard(
                       icon: Icons.business_center_outlined,
@@ -49,7 +102,8 @@ class RegisterTypeScreen extends StatelessWidget {
                         'Manage hiring pipeline',
                         'See job analytics',
                       ],
-                      onTap: () => context.go('/register/company'),
+                      onTap: () =>
+                          context.go('/register/company$redirectParam'),
                     ),
                   ];
                   if (isWide) {
@@ -68,13 +122,21 @@ class RegisterTypeScreen extends StatelessWidget {
                     cards[1],
                   ]);
                 }),
+
                 const SizedBox(height: 24),
-                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  const Text('Already have an account?'),
-                  TextButton(
-                      onPressed: () => context.go('/login'),
-                      child: const Text('Sign in')),
-                ]),
+
+                // ── SIGN IN LINK (also preserves redirect) ──
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Already have an account?'),
+                    TextButton(
+                      onPressed: () =>
+                          context.go('/login$redirectParam'),
+                      child: const Text('Sign in'),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -84,11 +146,16 @@ class RegisterTypeScreen extends StatelessWidget {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// ROLE CARD
+// ═══════════════════════════════════════════════════════════════════
+
 class _RoleCard extends StatelessWidget {
   final IconData icon;
   final String title, subtitle;
   final List<String> items;
   final VoidCallback onTap;
+
   const _RoleCard({
     required this.icon,
     required this.title,
@@ -117,9 +184,11 @@ class _RoleCard extends StatelessWidget {
                 child: Icon(icon, color: const Color(0xFF2563EB), size: 26),
               ),
               const SizedBox(height: 16),
-              Text(title,
-                  style: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.w700)),
+              Text(
+                title,
+                style: const TextStyle(
+                    fontSize: 20, fontWeight: FontWeight.w700),
+              ),
               const SizedBox(height: 6),
               Text(subtitle, style: TextStyle(color: Colors.grey[600])),
               const SizedBox(height: 16),
@@ -136,7 +205,9 @@ class _RoleCard extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                    onPressed: onTap, child: Text('Continue as $title')),
+                  onPressed: onTap,
+                  child: Text('Continue as $title'),
+                ),
               ),
             ],
           ),

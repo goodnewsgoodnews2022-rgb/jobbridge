@@ -10,28 +10,39 @@ import '../providers/jobs_provider.dart';
 
 class AllJobsScreen extends ConsumerWidget {
   const AllJobsScreen({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final filters = ref.watch(jobFiltersProvider);
     final jobs = ref.watch(allJobsProvider);
 
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1200),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(height: 8),
-              const Text('All Jobs',
-                  style: TextStyle(
-                      fontSize: 28, fontWeight: FontWeight.w800)),
+              const Text(
+                'All Jobs',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
               const SizedBox(height: 6),
-              Text('Browse jobs from companies, BOQQS and Himalayas.',
-                  style: TextStyle(color: Colors.grey[600])),
+              Text(
+                'Browse jobs from companies, BOQQS, Himalayas and more.',
+                style: TextStyle(color: Colors.grey[600]),
+              ),
               const SizedBox(height: 20),
-              // Filter bar
+
+              // ─────────────────────────────────────────────
+              // FILTER BAR
+              // ─────────────────────────────────────────────
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -66,7 +77,14 @@ class AllJobsScreen extends ConsumerWidget {
                       _dropdown(
                         label: 'Source',
                         value: filters.source,
-                        items: const ['company', 'boqqs', 'himalayas'],
+                      items: const [
+  'company',
+  'progigfinder',
+  'arbeitnow',
+  'himalayas',
+  
+  'boqqs',
+],
                         onChanged: (v) => ref
                             .read(jobFiltersProvider.notifier)
                             .update((s) => s.copyWith(source: v)),
@@ -82,7 +100,12 @@ class AllJobsScreen extends ConsumerWidget {
                   ),
                 ),
               ),
+
               const SizedBox(height: 24),
+
+              // ─────────────────────────────────────────────
+              // JOBS GRID
+              // ─────────────────────────────────────────────
               jobs.when(
                 loading: () => const LoadingGrid(),
                 error: (e, _) => Text('Error: $e'),
@@ -102,7 +125,7 @@ class AllJobsScreen extends ConsumerWidget {
                       maxCrossAxisExtent: 480,
                       mainAxisSpacing: 16,
                       crossAxisSpacing: 16,
-                      childAspectRatio: 2.1,
+                      mainAxisExtent: 320,
                     ),
                     itemCount: list.length,
                     itemBuilder: (_, i) => JobCard(job: list[i]),
@@ -116,6 +139,9 @@ class AllJobsScreen extends ConsumerWidget {
     );
   }
 
+  // ─────────────────────────────────────────────
+  // FILTER DROPDOWN
+  // ─────────────────────────────────────────────
   Widget _dropdown({
     required String label,
     required String? value,
@@ -130,11 +156,21 @@ class AllJobsScreen extends ConsumerWidget {
         decoration: InputDecoration(
           labelText: label,
           contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12, vertical: 8),
+            horizontal: 12,
+            vertical: 8,
+          ),
         ),
         items: [
-          DropdownMenuItem(value: null, child: Text('Any $label')),
-          ...items.map((e) => DropdownMenuItem(value: e, child: Text(e))),
+          DropdownMenuItem<String?>(
+            value: null,
+            child: Text('Any $label'),
+          ),
+          ...items.map(
+            (e) => DropdownMenuItem<String?>(
+              value: e,
+              child: Text(e),
+            ),
+          ),
         ],
         onChanged: onChanged,
       ),

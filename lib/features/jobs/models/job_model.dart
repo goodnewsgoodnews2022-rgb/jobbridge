@@ -24,6 +24,9 @@ class JobModel {
   final String status;
   final int views;
 
+  final bool featured;
+  final String package;
+
   JobModel({
     required this.id,
     required this.source,
@@ -49,6 +52,8 @@ class JobModel {
     this.expiresAt,
     this.status = 'active',
     this.views = 0,
+    this.featured = false,
+    this.package = 'free',
   });
 
   String? get salaryLabel {
@@ -97,5 +102,7 @@ class JobModel {
             : null,
         status: m['status'] ?? 'active',
         views: m['views'] ?? 0,
+        featured: m['featured'] ?? false,
+        package: m['package'] ?? 'free',
       );
 }

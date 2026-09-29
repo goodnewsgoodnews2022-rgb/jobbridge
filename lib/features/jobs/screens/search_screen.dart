@@ -33,17 +33,19 @@ class _State extends ConsumerState<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final jobs = ref.watch(allJobsProvider);
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1200),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 8),
-              const Text('Search Jobs',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+   return SingleChildScrollView(     // ← add this
+  padding: const EdgeInsets.all(24),
+  child: Center(
+    child: ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 1200),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,   // ← add this
+        children: [
+          const Text(
+            'Search Jobs',
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
+          ),
               const SizedBox(height: 16),
               Card(
                 child: Padding(
@@ -87,7 +89,7 @@ class _State extends ConsumerState<SearchScreen> {
                           maxCrossAxisExtent: 480,
                           mainAxisSpacing: 16,
                           crossAxisSpacing: 16,
-                          childAspectRatio: 2.1,
+                          mainAxisExtent: 300
                         ),
                         itemCount: list.length,
                         itemBuilder: (_, i) => JobCard(job: list[i]),

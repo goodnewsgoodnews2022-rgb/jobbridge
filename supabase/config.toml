@@ -416,8 +416,58 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 # ─────────────────────────────────────────────
 # JobBridge — Sync functions (public, no JWT)
 # ─────────────────────────────────────────────
+
+# ─────────────────────────────────────────────
+# JobBridge — Edge Functions (public, no JWT)
+# ─────────────────────────────────────────────
+
 [functions.sync-boqqs]
 verify_jwt = false
 
 [functions.sync-himalayas]
 verify_jwt = false
+
+[functions.sync-arbeitnow]
+verify_jwt = false
+
+[functions.image-proxy]
+enabled = true
+verify_jwt = false
+import_map = "./functions/image-proxy/deno.json"
+entrypoint = "./functions/image-proxy/index.ts"
+
+
+
+
+[functions.sync-progigfinder]
+enabled = true
+verify_jwt = false
+import_map = "./functions/sync-progigfinder/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/sync-progigfinder/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/sync-progigfinder/*.html" ]
+
+[functions.paystack-init]
+enabled = true
+verify_jwt = false
+import_map = "./functions/paystack-init/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/paystack-init/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/paystack-init/*.html" ]
+
+[functions.paystack-webhook]
+enabled = true
+verify_jwt = false
+import_map = "./functions/paystack-webhook/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/paystack-webhook/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/paystack-webhook/*.html" ]

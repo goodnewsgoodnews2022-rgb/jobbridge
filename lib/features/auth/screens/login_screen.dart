@@ -5,7 +5,12 @@ import '../../../core/services/supabase_service.dart';
 import '../../../shared/widgets/brand_logo.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+  /// Optional path to redirect to after successful login.
+  /// Example: `/jobs/abc-123` when the user clicked Apply on a job.
+  final String? redirect;
+
+  const LoginScreen({super.key, this.redirect});
+
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
@@ -18,7 +23,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   String? _error;
 
   Future<void> _login() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       final res = await SupabaseService.auth.signInWithPassword(
         email: _email.text.trim(),
@@ -26,7 +34,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       );
       final role = res.user?.userMetadata?['role'];
       if (!mounted) return;
-      if (role == 'company') {
+
+      // Priority: explicit redirect → role dashboard
+      if (widget.redirect != null && widget.redirect!.isNotEmpty) {
+        context.go(widget.redirect!);
+      } else if (role == 'company') {
         context.go('/company/dashboard');
       } else {
         context.go('/job-seeker/dashboard');
@@ -51,14 +63,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               children: [
                 const Center(child: BrandLogo(size: 56)),
                 const SizedBox(height: 24),
-                Text('Welcome back',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w700)),
+                Text(
+                  'Welcome back',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.w700),
+                ),
                 const SizedBox(height: 8),
-                Text('Sign in to continue to JobBridge',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey[600])),
+                Text(
+                  widget.redirect != null
+                      ? 'Sign in to continue to the job'
+                      : 'Sign in to continue to JobBridge',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
                 const SizedBox(height: 32),
                 if (_error != null) _ErrorBanner(_error!),
                 TextField(
@@ -79,9 +99,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       onPressed: () => setState(() => _obscure = !_obscure),
-                      icon: Icon(_obscure
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined),
+                      icon: Icon(
+                        _obscure
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                      ),
                     ),
                   ),
                 ),
@@ -100,7 +122,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white))
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
                       : const Text('Sign In'),
                 ),
                 const SizedBox(height: 16),
@@ -109,7 +134,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   children: [
                     const Text("Don't have an account?"),
                     TextButton(
-                      onPressed: () => context.go('/register'),
+                      onPressed: () {
+                        final redirectParam = widget.redirect != null
+                            ? '?redirect=${Uri.encodeComponent(widget.redirect!)}'
+                            : '';
+                        context.go('/register$redirectParam');
+                      },
                       child: const Text('Sign up'),
                     ),
                   ],
@@ -140,8 +170,11 @@ class _ErrorBanner extends StatelessWidget {
         const Icon(Icons.error_outline, color: Color(0xFFDC2626), size: 20),
         const SizedBox(width: 10),
         Expanded(
-            child: Text(message,
-                style: const TextStyle(color: Color(0xFF991B1B), fontSize: 13))),
+          child: Text(
+            message,
+            style: const TextStyle(color: Color(0xFF991B1B), fontSize: 13),
+          ),
+        ),
       ]),
     );
   }

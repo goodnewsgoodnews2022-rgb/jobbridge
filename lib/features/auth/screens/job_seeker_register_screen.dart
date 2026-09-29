@@ -8,7 +8,15 @@ import '../../../core/services/supabase_service.dart';
 import '../../../shared/widgets/brand_logo.dart';
 
 class JobSeekerRegisterScreen extends ConsumerStatefulWidget {
-  const JobSeekerRegisterScreen({super.key});
+  /// Where to redirect after successful registration.
+  /// Example: `/jobs/abc-123` when user clicked Apply on a job.
+  final String? redirect;
+
+  const JobSeekerRegisterScreen({
+    super.key,
+    this.redirect,
+  });
+
   @override
   ConsumerState<JobSeekerRegisterScreen> createState() => _State();
 }
@@ -26,9 +34,25 @@ class _State extends ConsumerState<JobSeekerRegisterScreen> {
   bool _loading = false;
   String? _error;
 
+  @override
+  void dispose() {
+    _name.dispose();
+    _email.dispose();
+    _phone.dispose();
+    _location.dispose();
+    _skills.dispose();
+    _password.dispose();
+    super.dispose();
+  }
+
   Future<void> _register() async {
     if (!_form.currentState!.validate()) return;
-    setState(() { _loading = true; _error = null; });
+
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
     try {
       final res = await SupabaseService.auth.signUp(
         email: _email.text.trim(),
@@ -47,7 +71,10 @@ class _State extends ConsumerState<JobSeekerRegisterScreen> {
           'preferred_employment_type': _employment,
         },
       );
+
       if (res.user != null) {
+        // The DB trigger already inserted a row into profiles.
+        // But we upsert to fill in the extra fields the trigger didn't know about.
         await SupabaseService.client.from('profiles').upsert({
           'id': res.user!.id,
           'role': 'job_seeker',
@@ -55,14 +82,29 @@ class _State extends ConsumerState<JobSeekerRegisterScreen> {
           'email': _email.text.trim(),
           'phone': _phone.text.trim(),
           'location': _location.text.trim(),
-          'skills': _skills.text.split(',').map((s) => s.trim()).toList(),
+          'skills': _skills.text
+              .split(',')
+              .map((s) => s.trim())
+              .where((s) => s.isNotEmpty)
+              .toList(),
           'experience_level': _experience,
           'preferred_employment_type': _employment,
         });
       }
-      if (mounted) context.go('/job-seeker/dashboard');
+
+      if (!mounted) return;
+
+      // ── Redirect: use widget.redirect if provided, else dashboard ──
+      final target = (widget.redirect != null && widget.redirect!.isNotEmpty)
+          ? widget.redirect!
+          : '/job-seeker/dashboard';
+
+      debugPrint('🎯 [JobSeekerRegister] Redirecting to: $target');
+      context.go(target);
     } catch (e) {
-      setState(() => _error = e.toString());
+      if (mounted) {
+        setState(() => _error = e.toString());
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -70,6 +112,9 @@ class _State extends ConsumerState<JobSeekerRegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Show a small banner explaining they'll return to the job
+    final comingFromJob = widget.redirect?.startsWith('/jobs/') ?? false;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Create Job Seeker Account')),
       body: Center(
@@ -84,6 +129,37 @@ class _State extends ConsumerState<JobSeekerRegisterScreen> {
                 children: [
                   const Center(child: BrandLogo(size: 48)),
                   const SizedBox(height: 24),
+
+                  // ── Coming from a job? Show context ──
+                  if (comingFromJob) ...[
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFBFDBFE)),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.work_outline,
+                              size: 18, color: Color(0xFF2563EB)),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'After signing up, you will return to the job you were viewing.',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFF1E40AF),
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
                   if (_error != null)
                     Container(
                       padding: const EdgeInsets.all(12),
@@ -91,10 +167,24 @@ class _State extends ConsumerState<JobSeekerRegisterScreen> {
                       decoration: BoxDecoration(
                         color: const Color(0xFFFEF2F2),
                         borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFFECACA)),
                       ),
-                      child: Text(_error!,
-                          style: const TextStyle(color: Color(0xFF991B1B))),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline,
+                              size: 18, color: Color(0xFFDC2626)),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              _error!,
+                              style: const TextStyle(
+                                  color: Color(0xFF991B1B), fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+
                   _sectionTitle('Personal Information'),
                   TextFormField(
                     controller: _name,
@@ -121,6 +211,7 @@ class _State extends ConsumerState<JobSeekerRegisterScreen> {
                     decoration: const InputDecoration(labelText: 'Location'),
                     validator: (v) => v!.isEmpty ? 'Required' : null,
                   ),
+
                   const SizedBox(height: 24),
                   _sectionTitle('Professional Details'),
                   TextFormField(
@@ -150,6 +241,7 @@ class _State extends ConsumerState<JobSeekerRegisterScreen> {
                         .toList(),
                     onChanged: (v) => setState(() => _employment = v!),
                   ),
+
                   const SizedBox(height: 24),
                   _sectionTitle('Security'),
                   TextFormField(
@@ -159,6 +251,7 @@ class _State extends ConsumerState<JobSeekerRegisterScreen> {
                     validator: (v) =>
                         v!.length < 6 ? 'Min 6 characters' : null,
                   ),
+
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: _loading ? null : _register,
@@ -172,7 +265,13 @@ class _State extends ConsumerState<JobSeekerRegisterScreen> {
                   ),
                   const SizedBox(height: 12),
                   TextButton(
-                    onPressed: () => context.go('/login'),
+                    onPressed: () {
+                      // Preserve the redirect when switching to login
+                      final redirectParam = widget.redirect != null
+                          ? '?redirect=${Uri.encodeComponent(widget.redirect!)}'
+                          : '';
+                      context.go('/login$redirectParam');
+                    },
                     child: const Text('Already have an account? Sign in'),
                   ),
                 ],

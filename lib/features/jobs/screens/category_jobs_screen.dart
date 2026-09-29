@@ -25,42 +25,44 @@ class _State extends ConsumerState<CategoryJobsScreen> {
   @override
   Widget build(BuildContext context) {
     final jobs = ref.watch(allJobsProvider);
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1200),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 8),
-              Text(widget.category,
-                  style: const TextStyle(
-                      fontSize: 28, fontWeight: FontWeight.w800)),
-              const SizedBox(height: 24),
-              jobs.when(
-                loading: () => const LoadingGrid(),
-                error: (e, _) => Text('Error: $e'),
-                data: (list) => list.isEmpty
-                    ? const EmptyState(
-                        icon: Icons.work_off_outlined,
-                        title: 'No jobs in this category yet',
-                      )
-                    : GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate:
-                            const SliverGridDelegateWithMaxCrossAxisExtent(
-                          maxCrossAxisExtent: 480,
-                          mainAxisSpacing: 16,
-                          crossAxisSpacing: 16,
-                          childAspectRatio: 2.1,
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1200),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 8),
+                Text(widget.category,
+                    style: const TextStyle(
+                        fontSize: 28, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 24),
+                jobs.when(
+                  loading: () => const LoadingGrid(),
+                  error: (e, _) => Text('Error: $e'),
+                  data: (list) => list.isEmpty
+                      ? const EmptyState(
+                          icon: Icons.work_off_outlined,
+                          title: 'No jobs in this category yet',
+                        )
+                      : GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate:
+                              const SliverGridDelegateWithMaxCrossAxisExtent(
+                            maxCrossAxisExtent: 480,
+                            mainAxisSpacing: 16,
+                            crossAxisSpacing: 16,
+                            mainAxisExtent: 300,
+                          ),
+                          itemCount: list.length,
+                          itemBuilder: (_, i) => JobCard(job: list[i]),
                         ),
-                        itemCount: list.length,
-                        itemBuilder: (_, i) => JobCard(job: list[i]),
-                      ),
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

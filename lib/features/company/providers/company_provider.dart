@@ -30,7 +30,13 @@ final companyApplicationsProvider =
   if (c == null) return [];
   final res = await SupabaseService.client
       .from('applications')
-      .select('*, jobs(title), profiles:job_seeker_id(full_name, email, phone, cv_url)')
+      .select('''
+        *,
+        jobs(title, source, location),
+        profiles!applications_job_seeker_id_profiles_fkey(
+          full_name, email, phone, cv_url
+        )
+      ''')
       .eq('company_id', c['id'])
       .order('created_at', ascending: false);
   return (res as List).cast<Map<String, dynamic>>();

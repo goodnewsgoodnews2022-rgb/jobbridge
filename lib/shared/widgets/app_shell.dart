@@ -20,6 +20,8 @@ class AppShell extends ConsumerWidget {
       _NavLink('Remote', '/remote-jobs'),
       _NavLink('Nigeria', '/nigeria-jobs'),
       _NavLink('Categories', '/categories'),
+      _NavLink('Pricing', '/pricing'),
+      _NavLink('Resume Builder', '/resume'),
     ];
 
     final userLinks = <_NavLink>[
@@ -36,7 +38,7 @@ class AppShell extends ConsumerWidget {
       ],
     ];
 
-    final isMobile = MediaQuery.of(context).size.width < 900;
+    final isMobile = MediaQuery.of(context).size.width < 1024;
 
     return Scaffold(
       appBar: isMobile
@@ -145,9 +147,18 @@ class _DesktopNav extends StatelessWidget {
             onTap: () => context.go('/'),
             child: const BrandLogo(size: 36),
           ),
-          const SizedBox(width: 40),
-          ...links.map((l) => _navItem(context, l, loc == l.route)),
-          const Spacer(),
+          const SizedBox(width: 24),
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  ...links.map((l) => _navItem(context, l, loc == l.route)),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
           if (!auth.isLoggedIn) ...[
             TextButton(
                 onPressed: () => context.go('/login'),
@@ -158,7 +169,14 @@ class _DesktopNav extends StatelessWidget {
               child: const Text('Get Started'),
             ),
           ] else ...[
-            ...userLinks.map((l) => _navItem(context, l, loc == l.route)),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  ...userLinks.map((l) => _navItem(context, l, loc == l.route)),
+                ],
+              ),
+            ),
             const SizedBox(width: 12),
             PopupMenuButton<String>(
               offset: const Offset(0, 44),

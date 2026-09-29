@@ -134,7 +134,7 @@ class CompanyProfileScreen extends ConsumerWidget {
                                 maxCrossAxisExtent: 480,
                                 mainAxisSpacing: 16,
                                 crossAxisSpacing: 16,
-                                childAspectRatio: 2.1,
+                              mainAxisExtent: 300,
                               ),
                               itemCount: list.length,
                               itemBuilder: (_, i) => JobCard(job: list[i]),

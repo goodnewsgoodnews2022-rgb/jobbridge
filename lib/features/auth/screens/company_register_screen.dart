@@ -4,7 +4,7 @@ import '../../../core/services/supabase_service.dart';
 import '../../../shared/widgets/brand_logo.dart';
 
 class CompanyRegisterScreen extends StatefulWidget {
-  const CompanyRegisterScreen({super.key});
+  const CompanyRegisterScreen({super.key, String? redirect});
   @override
   State<CompanyRegisterScreen> createState() => _State();
 }

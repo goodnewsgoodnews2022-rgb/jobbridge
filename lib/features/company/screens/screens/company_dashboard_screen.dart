@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:jobbridge/core/services/supabase_service.dart';
 import 'package:jobbridge/features/auth/providers/auth_provider.dart';
 import 'package:jobbridge/features/company/providers/company_provider.dart';
 import 'package:jobbridge/shared/widgets/empty_state.dart';
@@ -80,6 +81,86 @@ class CompanyDashboardScreen extends ConsumerWidget {
                   );
                 },
               ),
+              // ── Billing Overview ──
+const SizedBox(height: 24),
+FutureBuilder(
+  future: SupabaseService.client
+      .from('job_orders')
+      .select()
+      .eq('company_id', company.valueOrNull?['id'])
+      .order('created_at', ascending: false)
+      .limit(5),
+  builder: (context, snap) {
+    final orders = (snap.data as List?) ?? [];
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              const Icon(Icons.receipt_long, color: Color(0xFF2563EB)),
+              const SizedBox(width: 10),
+              const Text('Recent Purchases',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+              const Spacer(),
+              TextButton.icon(
+                onPressed: () => context.go('/pricing'),
+                icon: const Icon(Icons.add, size: 16),
+                label: const Text('Buy Package'),
+              ),
+            ]),
+            const SizedBox(height: 12),
+            if (orders.isEmpty)
+              Text('No purchases yet.',
+                  style: TextStyle(color: Colors.grey[600]))
+            else
+              ...orders.map((o) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Row(
+                      children: [
+                        Icon(
+                          o['payment_status'] == 'paid'
+                              ? Icons.check_circle
+                              : Icons.hourglass_empty,
+                          size: 18,
+                          color: o['payment_status'] == 'paid'
+                              ? const Color(0xFF16A34A)
+                              : const Color(0xFFF59E0B),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(child: Text(o['package'] ?? '')),
+                        Text('₦${o['amount']}'),
+                        const SizedBox(width: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: o['payment_status'] == 'paid'
+                                ? const Color(0xFFECFDF5)
+                                : const Color(0xFFFFF7ED),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            (o['payment_status'] ?? '').toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: o['payment_status'] == 'paid'
+                                  ? const Color(0xFF059669)
+                                  : const Color(0xFFEA580C),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )),
+          ],
+        ),
+      ),
+    );
+  },
+),
               const SizedBox(height: 32),
               const Text('Recent Jobs',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),

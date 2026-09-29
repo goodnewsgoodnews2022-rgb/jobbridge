@@ -5,6 +5,8 @@ import 'package:jobbridge/features/company/company/screens/company_applications_
 import 'package:jobbridge/features/company/company/screens/manage_jobs_screen.dart';
 import 'package:jobbridge/features/company/company/screens/post_job_screen.dart';
 import 'package:jobbridge/features/company/screens/screens/company_dashboard_screen.dart';
+import 'package:jobbridge/features/payments/screens/screens/checkout_screen.dart';
+import 'package:jobbridge/features/payments/screens/screens/payment_pending_screen.dart';
 
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/auth/screens/login_screen.dart';
@@ -27,6 +29,12 @@ import '../../features/job_seeker/screens/saved_jobs_screen.dart';
 import '../../features/job_seeker/screens/applications_screen.dart';
 import '../../features/job_seeker/screens/job_seeker_profile_screen.dart';
 import '../../shared/widgets/app_shell.dart';
+import '../../features/payments/screens/pricing_screen.dart';
+import '../../features/resume/screens/resume_landing_screen.dart';
+import '../../features/resume/screens/resume_builder_screen.dart';
+import '../../features/resume/screens/resume_preview_screen.dart';
+import '../../features/resume/screens/my_resumes_screen.dart';
+
 
 final routerProvider = Provider<GoRouter>((ref) {
   final auth = ref.watch(authStateProvider);
@@ -75,6 +83,24 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
               path: '/remote-jobs',
               builder: (_, __) => const RemoteJobsScreen()),
+              GoRoute(
+    path: '/resume', builder: (_, __) => const ResumeLandingScreen()),
+GoRoute(
+    path: '/my-resumes', builder: (_, __) => const MyResumesScreen()),
+GoRoute(
+  path: '/resume/create',
+  builder: (_, s) =>
+      ResumeBuilderScreen(editId: s.uri.queryParameters['editId']),
+),
+GoRoute(
+  path: '/resume/preview',
+  builder: (_, s) =>
+      ResumePreviewScreen(resumeId: s.uri.queryParameters['id'] ?? ''),
+),
+              GoRoute(
+  path: '/pricing',
+  builder: (_, __) => const PricingScreen(),
+),
           GoRoute(
               path: '/nigeria-jobs',
               builder: (_, __) => const NigeriaJobsScreen()),
@@ -88,11 +114,11 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/jobs/:id',
             builder: (_, s) => JobDetailsScreen(jobId: s.pathParameters['id']!),
           ),
-          GoRoute(
-            path: '/company/:id',
-            builder: (_, s) =>
-                CompanyProfileScreen(companyId: s.pathParameters['id']!),
-          ),
+        GoRoute(
+  path: '/companies/:id',
+  builder: (_, s) =>
+      CompanyProfileScreen(companyId: s.pathParameters['id']!),
+),
           GoRoute(
             path: '/search',
             builder: (_, s) =>
@@ -100,16 +126,39 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
+      GoRoute(
+  path: '/company/checkout',
+  builder: (_, s) => CheckoutScreen(
+    packageId: s.uri.queryParameters['package'] ?? 'job-basic',
+    jobId: s.uri.queryParameters['job'],    // ← must be here
+  ),
+),
 
       // ---------- AUTH ----------
-      GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
-      GoRoute(path: '/register', builder: (_, __) => const RegisterTypeScreen()),
-      GoRoute(
-          path: '/register/job-seeker',
-          builder: (_, __) => const JobSeekerRegisterScreen()),
-      GoRoute(
-          path: '/register/company',
-          builder: (_, __) => const CompanyRegisterScreen()),
+    GoRoute(
+  path: '/login',
+  builder: (_, s) => LoginScreen(
+    redirect: s.uri.queryParameters['redirect'],
+  ),
+),
+     GoRoute(
+  path: '/register',
+  builder: (_, s) => RegisterTypeScreen(
+    redirect: s.uri.queryParameters['redirect'],
+  ),
+),
+   GoRoute(
+  path: '/register/job-seeker',
+  builder: (_, s) => JobSeekerRegisterScreen(
+    redirect: s.uri.queryParameters['redirect'],
+  ),
+),
+    GoRoute(
+  path: '/register/company',
+  builder: (_, s) => CompanyRegisterScreen(
+    redirect: s.uri.queryParameters['redirect'],
+  ),
+),
       GoRoute(
           path: '/forgot-password',
           builder: (_, __) => const ForgotPasswordScreen()),
@@ -140,6 +189,19 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
               path: '/company/dashboard',
               builder: (_, __) => const CompanyDashboardScreen()),
+              GoRoute(
+  path: '/company/checkout',
+  builder: (_, s) => CheckoutScreen(
+    packageId: s.uri.queryParameters['package'] ?? 'job-basic',
+  ),
+),
+GoRoute(
+  path: '/company/payment/pending',
+  builder: (_, s) => PaymentPendingScreen(
+    orderId: s.uri.queryParameters['order'] ?? '',
+    reference: s.uri.queryParameters['ref'] ?? '',
+  ),
+),
           GoRoute(
               path: '/company/jobs',
               builder: (_, __) => const ManageJobsScreen()),

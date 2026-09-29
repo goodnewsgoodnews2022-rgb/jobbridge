@@ -13,7 +13,7 @@ class LoadingGrid extends StatelessWidget {
         maxCrossAxisExtent: 460,
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
-        childAspectRatio: 2.4,
+        mainAxisExtent: 300,
       ),
       itemCount: count,
       itemBuilder: (_, __) => Shimmer.fromColors(

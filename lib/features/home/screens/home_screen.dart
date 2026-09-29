@@ -1,4 +1,4 @@
-// ignore_for_file: deprecated_member_use, unused_local_variable
+// ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../shared/widgets/job_card.dart';
 import '../../jobs/providers/jobs_provider.dart';
+import '../../../shared/widgets/resume_builder_cta.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -16,20 +17,29 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _State extends ConsumerState<HomeScreen> {
   final _search = TextEditingController();
 
-  void _goSearch() {
-    final q = _search.text.trim();
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  void _goSearch([String? override]) {
+    final q = (override ?? _search.text).trim();
     context.go('/search?q=${Uri.encodeComponent(q)}');
   }
 
   @override
   Widget build(BuildContext context) {
     final latest = ref.watch(latestJobsProvider);
-    final remote = ref.watch(remoteJobsProvider);
+    final stats = ref.watch(sourceStatsProvider);
+    final isMobile = MediaQuery.of(context).size.width < 700;
 
     return SingleChildScrollView(
       child: Column(
         children: [
-          // ---------- HERO ----------
+          // ═══════════════════════════════════════════════════════
+          // HERO
+          // ═══════════════════════════════════════════════════════
           Container(
             width: double.infinity,
             decoration: const BoxDecoration(
@@ -39,54 +49,81 @@ class _State extends ConsumerState<HomeScreen> {
                 end: Alignment.bottomRight,
               ),
             ),
-            padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 24),
+            padding: EdgeInsets.symmetric(
+              vertical: isMobile ? 48 : 80,
+              horizontal: 24,
+            ),
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 820),
                 child: Column(
                   children: [
+                    // ── LIVE JOB COUNT BADGE ──
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 6),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                        ),
                       ),
-                      child: const Text(
-                        '🚀 Over 10,000+ live opportunities',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500),
+                      child: stats.when(
+                        loading: () => const _HeroBadgeText('🚀 Loading jobs…'),
+                        error: (_, __) =>
+                            const _HeroBadgeText('🚀 Live opportunities'),
+                        data: (m) {
+                          final total =
+                              m.values.fold<int>(0, (a, b) => a + b);
+                          final display =
+                              total >= 1000 ? '${(total / 1000).toStringAsFixed(1)}k+' : '$total';
+                          return _HeroBadgeText('🚀 $display live opportunities');
+                        },
                       ),
                     ),
+
                     const SizedBox(height: 24),
-                    const Text(
+
+                    Text(
                       'Find your next\ncareer move',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 52,
+                        fontSize: isMobile ? 36 : 52,
                         height: 1.1,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -1,
                       ),
                     ),
+
                     const SizedBox(height: 16),
+
                     Text(
                       'Search thousands of jobs from top companies, plus remote roles worldwide — all in one place.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                          color: Colors.white.withOpacity(0.75),
-                          fontSize: 17,
-                          height: 1.5),
+                        color: Colors.white.withOpacity(0.75),
+                        fontSize: isMobile ? 15 : 17,
+                        height: 1.5,
+                      ),
                     ),
+
                     const SizedBox(height: 36),
+
+                    // ── SEARCH BAR ──
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 24,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
                       ),
                       child: Row(
                         children: [
@@ -98,8 +135,7 @@ class _State extends ConsumerState<HomeScreen> {
                               controller: _search,
                               onSubmitted: (_) => _goSearch(),
                               decoration: const InputDecoration(
-                                hintText:
-                                    'Job title, keyword, or company…',
+                                hintText: 'Job title, keyword, or company…',
                                 border: InputBorder.none,
                                 enabledBorder: InputBorder.none,
                                 focusedBorder: InputBorder.none,
@@ -110,29 +146,34 @@ class _State extends ConsumerState<HomeScreen> {
                             ),
                           ),
                           ElevatedButton(
-                            onPressed: _goSearch,
+                            onPressed: () => _goSearch(),
                             child: const Text('Search'),
                           ),
                         ],
                       ),
                     ),
+
                     const SizedBox(height: 24),
+
+                    // ── QUICK TAG CHIPS (custom, no theme conflict) ──
                     Wrap(
                       alignment: WrapAlignment.center,
                       spacing: 8,
+                      runSpacing: 8,
                       children: [
-                        'Flutter', 'Designer', 'Marketing', 'Remote'
+                        'Flutter',
+                        'Designer',
+                        'Marketing',
+                        'Remote',
+                        'Finance',
+                        'Developer',
                       ]
-                          .map((t) => ActionChip(
-                                label: Text(t),
-                                backgroundColor: Colors.white.withOpacity(0.12),
-                                labelStyle: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w500),
-                                side: BorderSide.none,
-                                onPressed: () => context.go(
-                                    '/search?q=${Uri.encodeComponent(t)}'),
-                              ))
+                          .map(
+                            (tag) => _QuickTagChip(
+                              label: tag,
+                              onTap: () => _goSearch(tag),
+                            ),
+                          )
                           .toList(),
                     ),
                   ],
@@ -141,7 +182,9 @@ class _State extends ConsumerState<HomeScreen> {
             ),
           ),
 
-          // ---------- CATEGORIES ----------
+          // ═══════════════════════════════════════════════════════
+          // CATEGORIES
+          // ═══════════════════════════════════════════════════════
           Container(
             padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 24),
             child: ConstrainedBox(
@@ -151,10 +194,15 @@ class _State extends ConsumerState<HomeScreen> {
                 children: [
                   Row(
                     children: [
-                      const Text('Explore by Category',
+                      const Expanded(
+                        child: Text(
+                          'Explore by Category',
                           style: TextStyle(
-                              fontSize: 26, fontWeight: FontWeight.w800)),
-                      const Spacer(),
+                            fontSize: 26,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
                       TextButton(
                         onPressed: () => context.go('/categories'),
                         child: const Text('View all'),
@@ -170,7 +218,7 @@ class _State extends ConsumerState<HomeScreen> {
                       maxCrossAxisExtent: 260,
                       mainAxisSpacing: 12,
                       crossAxisSpacing: 12,
-                      childAspectRatio: 2.6,
+                      mainAxisExtent: 80,
                     ),
                     itemCount: 8,
                     itemBuilder: (_, i) {
@@ -183,7 +231,9 @@ class _State extends ConsumerState<HomeScreen> {
             ),
           ),
 
-          // ---------- LATEST JOBS ----------
+          // ═══════════════════════════════════════════════════════
+          // LATEST JOBS
+          // ═══════════════════════════════════════════════════════
           Container(
             color: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 24),
@@ -194,10 +244,15 @@ class _State extends ConsumerState<HomeScreen> {
                 children: [
                   Row(
                     children: [
-                      const Text('Latest Jobs',
+                      const Expanded(
+                        child: Text(
+                          'Latest Jobs',
                           style: TextStyle(
-                              fontSize: 26, fontWeight: FontWeight.w800)),
-                      const Spacer(),
+                            fontSize: 26,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
                       TextButton(
                         onPressed: () => context.go('/jobs'),
                         child: const Text('Browse all'),
@@ -211,26 +266,44 @@ class _State extends ConsumerState<HomeScreen> {
                       child: Center(child: CircularProgressIndicator()),
                     ),
                     error: (e, _) => Text('Error: $e'),
-                    data: (jobs) => GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithMaxCrossAxisExtent(
-                        maxCrossAxisExtent: 480,
-                        mainAxisSpacing: 16,
-                        crossAxisSpacing: 16,
-                        childAspectRatio: 2.1,
-                      ),
-                      itemCount: jobs.length,
-                      itemBuilder: (_, i) => JobCard(job: jobs[i]),
-                    ),
+                    data: (jobs) {
+                      if (jobs.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.all(40),
+                          child: Center(
+                            child: Text(
+                              'No jobs yet. Check back soon!',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                        );
+                      }
+                      return GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate:
+                            const SliverGridDelegateWithMaxCrossAxisExtent(
+                          maxCrossAxisExtent: 480,
+                          mainAxisSpacing: 16,
+                          crossAxisSpacing: 16,
+                          mainAxisExtent: 320,
+                        ),
+                        itemCount: jobs.length,
+                        itemBuilder: (_, i) => JobCard(job: jobs[i]),
+                      );
+                    },
                   ),
                 ],
               ),
             ),
           ),
+            // RESUME BUILDER CTA
+          // ═══════════════════════════════════════════════════════
+          const ResumeBuilderCta(),
 
-          // ---------- REMOTE CTA ----------
+          // ═══════════════════════════════════════════════════════
+          // REMOTE CTA
+          // ═══════════════════════════════════════════════════════
           Container(
             padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 24),
             child: ConstrainedBox(
@@ -249,17 +322,21 @@ class _State extends ConsumerState<HomeScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Work from anywhere 🌍',
-                              style: TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white)),
+                          const Text(
+                            'Work from anywhere 🌍',
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                            ),
+                          ),
                           const SizedBox(height: 10),
                           Text(
                             'Explore thousands of remote jobs from companies hiring worldwide.',
                             style: TextStyle(
-                                color: Colors.white.withOpacity(0.9),
-                                fontSize: 15),
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 15,
+                            ),
                           ),
                           const SizedBox(height: 20),
                           ElevatedButton(
@@ -281,8 +358,14 @@ class _State extends ConsumerState<HomeScreen> {
               ),
             ),
           ),
+                    // ═══════════════════════════════════════════════════════
+          // RESUME BUILDER CTA
+          // ═══════════════════════════════════════════════════════
+          const ResumeBuilderCta(),
 
-          // ---------- FOOTER ----------
+          // ═══════════════════════════════════════════════════════
+          // FOOTER
+          // ═══════════════════════════════════════════════════════
           Container(
             color: const Color(0xFF0F172A),
             padding: const EdgeInsets.all(40),
@@ -299,15 +382,84 @@ class _State extends ConsumerState<HomeScreen> {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// HERO BADGE TEXT
+// ═══════════════════════════════════════════════════════════════════
+
+class _HeroBadgeText extends StatelessWidget {
+  final String text;
+  const _HeroBadgeText(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 13,
+        fontWeight: FontWeight.w500,
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// QUICK TAG CHIP — custom container, immune to theme override
+// ═══════════════════════════════════════════════════════════════════
+
+class _QuickTagChip extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _QuickTagChip({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.3),
+              width: 1,
+            ),
+          ),
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// CATEGORY TILE
+// ═══════════════════════════════════════════════════════════════════
+
 class _CategoryTile extends StatelessWidget {
   final String name;
   const _CategoryTile({required this.name});
+
   @override
   Widget build(BuildContext context) {
     return Card(
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
-        onTap: () => context.go('/category/${Uri.encodeComponent(name)}'),
+        onTap: () =>
+            context.go('/category/${Uri.encodeComponent(name)}'),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -318,16 +470,23 @@ class _CategoryTile extends StatelessWidget {
                   color: const Color(0xFFEFF6FF),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.category_outlined,
-                    color: Color(0xFF2563EB), size: 20),
+                child: const Icon(
+                  Icons.category_outlined,
+                  color: Color(0xFF2563EB),
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 14)),
+                child: Text(
+                  name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
               ),
             ],
           ),
